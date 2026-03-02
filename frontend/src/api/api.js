@@ -1,20 +1,40 @@
 import axios from "axios";
 
-const API_KEY = import.meta.env.VITE_API_KEY;
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/api";
 
 const apiclient = axios.create({
-    baseURL: BASE_URL,
+    baseURL: BACKEND_URL,
     timeout: 10000,
 });
 
+apiclient.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export const loginUser = async (formData) => {
+    // Send standard JSON with the exact keys your UserLogin model expects
+    const credentials = {
+        email: formData.email,
+        password: formData.password
+    };
+
+    const response = await apiclient.post("/auth/login", credentials);
+    return response.data;
+};
+
+export const registerUser = async (userData) => {
+    const response = await apiclient.post("/auth/register", userData);
+    return response.data;
+};
+
 export const fetchSeriesList = async (offset = 0) => {
     try {
-        const response = await apiclient.get("/series", {
-            params: {
-                apikey: API_KEY,
-                offset: offset
-            }
+        const response = await apiclient.get("/cricket/series", {
+            params: { offset: offset }
         });
         return response.data;
     } catch (error) {
@@ -25,9 +45,7 @@ export const fetchSeriesList = async (offset = 0) => {
 
 export const fetchLiveMatches = async () => {
     try {
-        const response = await apiclient.get("/currentMatches", {
-            params: { apikey: API_KEY }
-        });
+        const response = await apiclient.get("/cricket/matches");
         return response.data;
     } catch (error) {
         console.error("Error fetching live matches:", error);
@@ -37,12 +55,7 @@ export const fetchLiveMatches = async () => {
 
 export const fetchMatchScorecard = async (matchId) => {
     try {
-        const response = await apiclient.get("/match_scorecard", {
-            params: { 
-                apikey: API_KEY, 
-                id: matchId 
-            }
-        });
+        const response = await apiclient.get(`/cricket/scorecard/${matchId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching scorecard:", error);
@@ -52,12 +65,7 @@ export const fetchMatchScorecard = async (matchId) => {
 
 export const fetchMatchInfo = async (matchId) => {
     try {
-        const response = await apiclient.get("/match_info", {
-            params: { 
-                apikey: API_KEY, 
-                id: matchId 
-            }
-        });
+        const response = await apiclient.get(`/cricket/info/${matchId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching match info:", error);

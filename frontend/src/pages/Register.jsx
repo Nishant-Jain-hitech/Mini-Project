@@ -1,17 +1,52 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../redux/slices/authSlice';
+import { registerUser } from '../api/api';
 import toast from 'react-hot-toast';
-import { User, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, ShieldCheck, Loader2 } from 'lucide-react';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    toast.success('Registration successful! Please login.');
-    navigate('/login');
+    setIsSubmitting(true);
+    const loadingToast = toast.loading('Creating your profile...');
+
+    try {
+      const response = await registerUser({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+
+      const authData = {
+        user: {
+          username: response.username,
+          email: response.email
+        },
+        token: response.access_token 
+      };
+
+      if (response.access_token) {
+        localStorage.setItem('token', response.access_token);
+        dispatch(setCredentials(authData));
+      }
+
+      toast.success('Welcome to the club! Registration successful.', { id: loadingToast });
+      navigate('/login');
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || "Registration failed. Try again.";
+      toast.error(`Run out! ${errorMessage}`, { id: loadingToast });
+      console.error("Registration error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -33,10 +68,11 @@ const Register = () => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
             <input 
               type="text"
-              placeholder="Full Name"
+              placeholder="Username"
               required
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none"
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              disabled={isSubmitting}
+              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
+              onChange={(e) => setFormData({...formData, username: e.target.value})}
             />
           </div>
 
@@ -46,7 +82,8 @@ const Register = () => {
               type="email"
               placeholder="Email Address"
               required
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none"
+              disabled={isSubmitting}
+              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
@@ -57,17 +94,25 @@ const Register = () => {
               type="password"
               placeholder="Password"
               required
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none"
+              disabled={isSubmitting}
+              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
           </div>
 
           <button 
             type="submit"
-            className="w-full bg-white text-slate-950 font-black py-4 rounded-2xl transition-all hover:bg-blue-500 hover:text-white flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full bg-white text-slate-950 font-black py-4 rounded-2xl transition-all hover:bg-blue-500 hover:text-white flex items-center justify-center gap-2 disabled:bg-slate-700 disabled:cursor-not-allowed"
           >
-            <ShieldCheck className="w-5 h-5" />
-            REGISTER NOW
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <ShieldCheck className="w-5 h-5" />
+                REGISTER NOW
+              </>
+            )}
           </button>
         </form>
 

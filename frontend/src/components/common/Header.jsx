@@ -15,7 +15,8 @@ const Header = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const handleLogout = (e) => {
-    e.stopPropagation(); // Prevents navigating to profile when clicking logout
+    e.stopPropagation();
+    localStorage.removeItem('token'); 
     dispatch(logout());
     toast.success('Signed out successfully');
     navigate('/login');
@@ -56,7 +57,7 @@ const Header = () => {
                   <User className="w-4 h-4 text-blue-400" />
                 </div>
                 <span className="text-[10px] font-black uppercase text-white tracking-widest group-hover:text-blue-400 transition-colors">
-                  {user?.name?.split(' ')[0]}
+                  {user?.username || 'Profile'}
                 </span>
               </Link>
               <button
@@ -120,7 +121,7 @@ const Header = () => {
                 >
                   <User className="w-4 h-4 text-blue-500 group-hover:text-blue-400" />
                   <span className="text-white font-black uppercase text-[10px] tracking-widest group-hover:text-blue-400 transition-colors">
-                    View Profile ({user?.name})
+                    View Profile ({user?.username})
                   </span>
                 </Link>
                 <button

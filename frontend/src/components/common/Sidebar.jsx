@@ -78,7 +78,7 @@ const Sidebar = ({ isMobileOpen, toggleSidebar }) => {
 
         <div className="p-6 space-y-6">
           <nav className="space-y-2">
-            <NavLink to="/" onClick={() => isMobileOpen && toggleSidebar()} className={navLinkStyles}>
+            <NavLink to="/home" onClick={() => isMobileOpen && toggleSidebar()} className={navLinkStyles}>
               <span className="text-xl">🏠</span>
               <span className="font-bold text-sm">Home</span>
             </NavLink>

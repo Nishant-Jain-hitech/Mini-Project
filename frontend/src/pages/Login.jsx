@@ -1,39 +1,54 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../redux/slices/authSlice';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { setCredentials, selectIsAuthenticated } from '../redux/slices/authSlice';
+import { loginUser } from '../api/api';
 import toast from 'react-hot-toast';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  const from = location.state?.from?.pathname || "/home";
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/home', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const loadingToast = toast.loading('Authenticating...');
 
     try {
-      if (formData.email === "admin@cricsocial.com" && formData.password === "password") {
-        const mockResponse = {
-          user: { name: "Admin User", email: formData.email },
-          token: "mock-jwt-token-123"
-        };
-        
-        dispatch(setCredentials(mockResponse));
-        toast.success('Welcome back to the crease!', { id: loadingToast });
-        navigate('/');
-      } else {
-        throw new Error("Invalid email or password");
-      }
+      const response = await loginUser(formData);
+      
+      const authData = {
+        user: response.user,
+        token: response.access_token
+      };
+      
+      localStorage.setItem('token', response.access_token);
+      dispatch(setCredentials(authData));
+      
+      toast.success(`Welcome back, ${response.user.username}!`, { id: loadingToast });
+      
+      navigate(from, { replace: true });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Authentication failed";
-      
+      const errorMessage = err.response?.data?.detail || "Invalid email or password";
       toast.error(`Caught out! ${errorMessage}`, { id: loadingToast });
-      
-      console.error("Login attempt failed:", err);
+      console.error("Login error:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,7 +63,11 @@ const Login = () => {
           <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">
             Login <span className="text-blue-500">Social</span>
           </h2>
-          <p className="text-slate-400 text-sm mt-2 font-medium">Ready for the next innings?</p>
+          <p className="text-slate-400 text-sm mt-2 font-medium">
+            {location.state?.from 
+              ? `Sign in to access ${location.state.from.pathname}` 
+              : 'Ready for the next innings?'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -58,8 +77,9 @@ const Login = () => {
               type="email"
               placeholder="Email Address"
               required
+              disabled={isSubmitting}
               autoComplete="email"
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
@@ -70,18 +90,26 @@ const Login = () => {
               type="password"
               placeholder="Password"
               required
+              disabled={isSubmitting}
               autoComplete="current-password"
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
           </div>
 
           <button 
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 group"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 group disabled:bg-blue-800 disabled:cursor-not-allowed"
           >
-            SIGN IN
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                SIGN IN
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
         </form>
 
