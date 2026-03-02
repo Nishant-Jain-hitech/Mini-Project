@@ -14,6 +14,11 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import AboutUs from './pages/AboutUs'
 import Contact from './pages/Contact'
+import PrivacyPolicy from './pages/legal/PrivacyPolicy'
+import CookiePolicy from './pages/legal/CookiePolicy'
+import TermsOfService from './pages/legal/TermsOfService'
+import OfficialMerch from './pages/community/OfficialMerch';
+import FanClubs from './pages/community/FanClubs';
 import Footer from './components/common/Footer'
 import Series from './pages/Series'
 
@@ -25,7 +30,7 @@ function App() {
 
   return (
     <div className='h-screen w-screen bg-slate-950 text-white flex flex-col overflow-hidden relative font-sans'>
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           style: {
@@ -38,12 +43,12 @@ function App() {
           },
         }}
       />
-      
+
       {!isAuthPage && <Header />}
-      
+
       <AnimatePresence>
         {!sidebarOpen && !isAuthPage && (
-          <motion.button 
+          <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -57,9 +62,9 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden relative">
         {!isAuthPage && (
-          <Sidebar 
-            isMobileOpen={sidebarOpen} 
-            toggleSidebar={() => setSidebarOpen(false)} 
+          <Sidebar
+            isMobileOpen={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
           />
         )}
 
@@ -75,7 +80,12 @@ function App() {
               <Route path="/cinema" element={<Cinema />} />
               <Route path="/about-us" element={<AboutUs />} />
               <Route path="/contact" element={<Contact />} />
-              
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/merch" element={<OfficialMerch />} />
+              <Route path="/fan-clubs" element={<FanClubs />} />
+
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
