@@ -9,11 +9,14 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="mt-20 border-t border-white/5 bg-[#020617] relative overflow-hidden">
+    <footer className="w-full border-t border-white/5 bg-[#020617] relative overflow-hidden flex-shrink-0">
+      {/* Decorative top border gradient */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+      
+      {/* Background glow effect */}
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-blue-600/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto pt-16 pb-8 px-6 lg:px-10">
+      <div className="max-w-7xl mx-auto pt-12 pb-8 px-6 lg:px-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
 
           {/* Brand Section */}
@@ -47,7 +50,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/live" className="hover:text-blue-500 transition-colors flex items-center gap-2 group">
+                <Link to="/live-scorecard" className="hover:text-blue-500 transition-colors flex items-center gap-2 group">
                   <span className="h-px w-0 bg-blue-500 group-hover:w-3 transition-all duration-300" /> Live Scoreboard
                 </Link>
               </li>
@@ -81,7 +84,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Connect Section - FIXED KEYS */}
+          {/* Connect Section */}
           <div>
             <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest opacity-70">Connect</h3>
             <div className="flex gap-4 mb-4">

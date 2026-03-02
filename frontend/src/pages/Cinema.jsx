@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Volume2, Maximize, SkipForward, Info, Plus } from 'lucide-react';
+import { X, Play, Volume2, Maximize, SkipForward, Info, Plus, Check, Bookmark } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, updateWatchlist } from '../redux/slices/authSlice';
+import { toggleWatchlistAPI } from '../api/api';
+import toast from 'react-hot-toast';
 
 const Cinema = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
 
   const media = [
     {
-      id: 1,
+      id: "movie_dhoni_01",
       title: "MS Dhoni: The Untold Story",
       type: "Movie",
       category: "Biopic",
@@ -17,7 +23,7 @@ const Cinema = () => {
       description: "The life of MS Dhoni, from a ticket collector to the World Cup-winning captain of India."
     },
     {
-      id: 2,
+      id: "movie_tambe_02",
       title: "Kaun Pravin Tambe?",
       type: "Movie",
       category: "Inspirational",
@@ -27,7 +33,7 @@ const Cinema = () => {
       description: "The extraordinary journey of a cricketer who made his professional debut at age 41."
     },
     {
-      id: 3,
+      id: "series_test_03",
       title: "The Test",
       type: "Web Series",
       category: "Docu-series",
@@ -37,7 +43,7 @@ const Cinema = () => {
       description: "Inside the Australian Men's Cricket Team's journey of redemption."
     },
     {
-      id: 4,
+      id: "movie_83_04",
       title: "83",
       type: "Movie",
       category: "Historical",
@@ -47,6 +53,24 @@ const Cinema = () => {
       description: "The story of India's incredible 1983 World Cup victory at Lord's."
     }
   ];
+
+  const handleWatchlistToggle = async (e, contentId) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to manage your watchlist");
+      return;
+    }
+
+    try {
+      const response = await toggleWatchlistAPI(contentId);
+      if (response.status === "success") {
+        dispatch(updateWatchlist(response.watchlist));
+        toast.success(response.action === 'added' ? "Added to Watchlist" : "Removed from Watchlist");
+      }
+    } catch (err) {
+      toast.error("Failed to update watchlist");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 pb-20 overflow-x-hidden">
@@ -83,8 +107,16 @@ const Cinema = () => {
               >
                 <Play className="w-4 h-4 fill-current" /> Play Now
               </button>
-              <button className="bg-white/10 backdrop-blur-xl text-white border border-white/10 px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-white/20 transition-all">
-                Details
+              <button 
+                onClick={(e) => handleWatchlistToggle(e, media[3].id)}
+                className={`px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all border flex items-center gap-2 ${
+                  user?.watchlist?.includes(media[3].id)
+                    ? 'bg-blue-600/20 border-blue-500 text-blue-400'
+                    : 'bg-white/10 border-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                {user?.watchlist?.includes(media[3].id) ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                Watchlist
               </button>
             </div>
           </motion.div>
@@ -116,6 +148,18 @@ const Cinema = () => {
                   alt={item.title}
                 />
                 
+                {/* Watchlist Quick Add Button */}
+                <button
+                  onClick={(e) => handleWatchlistToggle(e, item.id)}
+                  className={`absolute top-6 left-6 p-3 rounded-xl backdrop-blur-xl border transition-all z-20 ${
+                    user?.watchlist?.includes(item.id)
+                      ? 'bg-blue-600 border-blue-400 text-white'
+                      : 'bg-black/60 border-white/10 text-white/60 hover:text-white'
+                  }`}
+                >
+                  {user?.watchlist?.includes(item.id) ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                </button>
+
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-8">
                   <p className="text-white text-[11px] font-bold mb-6 leading-relaxed transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 line-clamp-4">
@@ -174,7 +218,6 @@ const Cinema = () => {
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="relative w-full max-w-6xl aspect-video bg-slate-950 rounded-none md:rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(37,99,235,0.2)] border-none md:border border-white/10"
             >
-              {/* Animated Blur Background */}
               <img 
                 src={selectedVideo.image} 
                 className="absolute inset-0 w-full h-full object-cover opacity-10 blur-3xl scale-150"
@@ -194,7 +237,6 @@ const Cinema = () => {
                 </div>
               </div>
 
-              {/* Player UI */}
               <div className="absolute bottom-0 left-0 w-full p-8 md:p-16">
                 <div className="mb-8 flex justify-between items-end">
                   <div>
@@ -206,27 +248,28 @@ const Cinema = () => {
                   </div>
                   <div className="hidden lg:flex gap-4">
                     <button className="p-4 bg-white/5 rounded-2xl text-white hover:bg-white/10 border border-white/5 transition-all"><Info className="w-6 h-6" /></button>
-                    <button className="p-4 bg-white/5 rounded-2xl text-white hover:bg-white/10 border border-white/5 transition-all"><Plus className="w-6 h-6" /></button>
+                    <button 
+                      onClick={(e) => handleWatchlistToggle(e, selectedVideo.id)}
+                      className={`p-4 rounded-2xl border transition-all ${
+                        user?.watchlist?.includes(selectedVideo.id) 
+                          ? 'bg-blue-600 border-blue-400 text-white' 
+                          : 'bg-white/5 text-white hover:bg-white/10 border-white/5'
+                      }`}
+                    >
+                      {user?.watchlist?.includes(selectedVideo.id) ? <Check className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-8">
-                  {/* Progress Bar */}
                   <div className="group h-2 w-full bg-white/5 rounded-full relative cursor-pointer">
                     <div className="absolute top-0 left-0 h-full w-[35%] bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.6)]" />
-                    <div className="absolute top-1/2 left-[35%] -translate-y-1/2 w-4 h-4 bg-white rounded-full scale-0 group-hover:scale-100 transition-transform shadow-xl" />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-10">
                       <button className="text-white hover:text-blue-500 transition-all hover:scale-110"><Play className="w-8 h-8 fill-current" /></button>
                       <button className="text-white hover:text-blue-500 transition-all hover:scale-110"><SkipForward className="w-7 h-7 fill-current" /></button>
-                      <div className="hidden md:flex items-center gap-4 group">
-                        <Volume2 className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
-                        <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                           <div className="h-full w-2/3 bg-slate-300" />
-                        </div>
-                      </div>
                       <span className="text-[11px] text-slate-500 font-black font-mono tracking-widest">24:02 / 02:30:15</span>
                     </div>
                     <div className="flex items-center gap-8">

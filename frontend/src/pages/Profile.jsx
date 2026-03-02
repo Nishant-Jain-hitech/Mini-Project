@@ -1,9 +1,37 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, setCredentials } from '../redux/slices/authSlice';
+import { updateProfile } from '../api/api';
+import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Profile = () => {
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
+
   const [activeTab, setActiveTab] = useState('My Collection');
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(user?.profile_image || null);
+  const [newUsername, setNewUsername] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef(null);
+
+  const mockCollection = [
+    { id: 1, name: "Virat Kohli", rarity: "Legendary", type: "Batsman", power: 98 },
+    { id: 2, name: "Jasprit Bumrah", rarity: "Epic", type: "Bowler", power: 94 },
+    { id: 3, name: "Ben Stokes", rarity: "Rare", type: "All-Rounder", power: 88 },
+    { id: 4, name: "Rashid Khan", rarity: "Epic", type: "Bowler", power: 92 },
+  ];
+
+  const mockActivity = [
+    { id: 1, action: "Won Match", target: "vs Thunderbirds", xp: "+450 XP", time: "2h ago" },
+    { id: 2, action: "Unlocked Card", target: "Ben Stokes", xp: "Rare Drop", time: "5h ago" },
+    { id: 3, action: "Rank Up", target: "Gold II", xp: "+1000 XP", time: "1d ago" },
+  ];
+
+  useEffect(() => {
+    if (user?.username) setNewUsername(user.username);
+    if (user?.profile_image) setImage(user.profile_image);
+  }, [user]);
 
   const tabs = [
     { id: 'collection', label: 'My Collection' },
@@ -11,148 +39,179 @@ const Profile = () => {
     { id: 'settings', label: 'Settings' }
   ];
 
-  const activityLog = [
-    { id: 'act-1', action: 'Predicted Australia to win', time: '2h ago', points: '+50 pts' },
-    { id: 'act-2', action: 'Shared a post in The Pavilion', time: '5h ago', points: '+10 pts' },
-    { id: 'act-3', action: 'Completed "Test Fan" Milestone', time: '1d ago', points: '+200 pts' }
-  ];
+  const handleUpdateProfile = async () => {
+    const trimmedName = newUsername.trim();
+    if (!trimmedName || trimmedName.length < 3) return toast.error("Username must be at least 3 characters");
+
+    const previousData = { ...user };
+    const token = localStorage.getItem('token');
+    setIsUpdating(true);
+    
+    dispatch(setCredentials({
+      user: { ...user, username: trimmedName, profile_image: image },
+      token: token
+    }));
+
+    try {
+      const response = await updateProfile(trimmedName, image);
+      dispatch(setCredentials({
+        user: { ...user, username: response.username, profile_image: response.profile_image },
+        token: token
+      }));
+      toast.success("Profile updated!");
+    } catch (err) {
+      dispatch(setCredentials({ user: previousData, token: token }));
+      toast.error(err.message || "Failed to sync with server");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400;
+          const scaleSize = MAX_WIDTH / img.width;
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          setImage(compressedBase64);
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
-
   return (
-    <div className="min-h-screen bg-[#020617] p-6 md:p-20 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-[#020617] p-6 md:p-20 text-white">
       <div className="max-w-5xl mx-auto">
         
+        {/* Header Section */}
         <div className="relative bg-gradient-to-br from-blue-600 to-blue-900 rounded-[3rem] p-8 md:p-16 overflow-hidden shadow-2xl shadow-blue-500/10">
-          <div className="absolute top-0 right-0 p-10 opacity-10">
-            <h1 className="text-[12rem] font-black italic">#18</h1>
+          <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
+            <h1 className="text-[12rem] font-black italic">#{user?.username?.length || '00'}</h1>
           </div>
           
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <button 
               type="button"
-              onClick={triggerFileInput}
-              aria-label="Upload profile picture"
-              className="w-40 h-40 rounded-full border-8 border-white/20 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer group relative outline-none focus:ring-4 focus:ring-blue-400"
+              onClick={() => fileInputRef.current.click()}
+              className="w-40 h-40 rounded-full border-8 border-white/20 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer group relative"
             >
               {image ? (
                 <img src={image} className="w-full h-full object-cover" alt="Profile" />
               ) : (
                 <div className="text-white/20 flex flex-col items-center">
-                  <span className="text-4xl">+</span>
-                  <span className="text-[10px] font-black uppercase tracking-tighter">Upload</span>
+                  <span className="text-6xl font-black mb-1 uppercase">{user?.username?.charAt(0) || '?'}</span>
+                  <span className="text-[10px] font-black uppercase">Upload</span>
                 </div>
               )}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <span className="text-white text-xs font-black uppercase">Change</span>
               </div>
             </button>
-            
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleImageChange} 
-            />
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
 
             <div className="text-center md:text-left">
-              <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
-                 <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter">Alex Fan</h1>
-                 <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 rounded-md">PRO</span>
-              </div>
-              <p className="text-blue-100 font-bold uppercase tracking-widest text-sm mb-6">Level 12 Cricket Strategist</p>
-              
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
-                  <p className="text-[10px] text-blue-100 font-black uppercase opacity-60">Pavilion Posts</p>
-                  <p className="text-xl font-black text-white">128</p>
-                </div>
-                <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
-                  <p className="text-[10px] text-blue-100 font-black uppercase opacity-60">Correct Predictions</p>
-                  <p className="text-xl font-black text-white">42</p>
-                </div>
+              <h1 className="text-5xl font-black uppercase italic tracking-tighter mb-2">{user?.username || 'Guest'}</h1>
+              <p className="text-blue-100 font-bold uppercase tracking-widest text-sm mb-6">Level {user?.username?.length || 1} Cricket Strategist</p>
+              <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 inline-block">
+                <p className="text-[10px] text-blue-100 font-black uppercase opacity-60">Identity</p>
+                <p className="text-sm font-bold">{user?.email}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <nav className="mt-12 flex gap-8 border-b border-white/5 pb-4 overflow-x-auto">
+        {/* Navigation Tabs */}
+        <nav className="mt-12 flex gap-8 border-b border-white/5 pb-4">
            {tabs.map((tab) => (
              <button 
                 key={tab.id} 
-                type="button"
                 onClick={() => setActiveTab(tab.label)}
-                className={`text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap outline-none focus:text-blue-400 ${activeTab === tab.label ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`text-sm font-black uppercase tracking-widest relative pb-4 ${activeTab === tab.label ? 'text-blue-500' : 'text-slate-500'}`}
              >
                {tab.label}
+               {activeTab === tab.label && (
+                 <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full" />
+               )}
              </button>
            ))}
         </nav>
 
-        <div className="mt-8 animate-in fade-in slide-in-from-top-2 duration-500">
-          {activeTab === 'My Collection' && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {['badge-gold', 'badge-silver', 'badge-bronze'].map((id, i) => (
-                <div key={id} className="bg-white/5 border border-white/10 rounded-2xl p-4 group hover:border-blue-500/50 transition-colors">
-                  <div className="aspect-square bg-slate-800 rounded-xl mb-4 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all text-2xl">
-                    🏆
-                  </div>
-                  <p className="text-white font-bold text-xs uppercase tracking-tighter">Match Badge #{i + 1}</p>
-                  <p className="text-slate-500 text-[10px]">Earned: 12 Feb 2026</p>
+        {/* Tab Content */}
+        <div className="mt-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              {activeTab === 'My Collection' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {mockCollection.map((item) => (
+                    <div key={item.id} className="bg-white/5 border border-white/10 p-6 rounded-[2rem] hover:border-blue-500/50 transition-colors group">
+                      <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <span className="text-blue-500 font-black">P{item.power}</span>
+                      </div>
+                      <h3 className="text-lg font-black uppercase italic">{item.name}</h3>
+                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{item.type} • {item.rarity}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {activeTab === 'Activity' && (
-            <div className="space-y-4">
-              {activityLog.map((act) => (
-                <div key={act.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div>
-                    <p className="text-white text-sm font-bold">{act.action}</p>
-                    <p className="text-slate-500 text-[10px] uppercase tracking-widest">{act.time}</p>
-                  </div>
-                  <span className="text-blue-500 font-black text-xs">{act.points}</span>
+              {activeTab === 'Activity' && (
+                <div className="space-y-4">
+                  {mockActivity.map((act) => (
+                    <div key={act.id} className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/[0.07] transition-colors">
+                      <div className="flex gap-4 items-center">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-tight text-slate-400">{act.action}</p>
+                          <p className="text-lg font-bold italic">{act.target}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-blue-500 font-black text-sm">{act.xp}</p>
+                        <p className="text-[10px] text-slate-600 uppercase font-black">{act.time}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {activeTab === 'Settings' && (
-            <div className="max-w-xl space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="display-name" className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Display Name</label>
-                  <input id="display-name" type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white mt-2 outline-none focus:border-blue-500 transition-colors" defaultValue="Alex Fan" />
+              {activeTab === 'Settings' && (
+                <div className="max-w-xl space-y-6">
+                  <div className="group">
+                    <label className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Display Name</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white mt-2 outline-none focus:border-blue-500 transition-all" 
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                    />
+                  </div>
+                  <button 
+                    onClick={handleUpdateProfile}
+                    disabled={isUpdating}
+                    className="w-full md:w-auto px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 disabled:opacity-50 transition-all active:scale-95"
+                  >
+                    {isUpdating ? "Syncing..." : "Save Changes"}
+                  </button>
                 </div>
-                <div>
-                  <label htmlFor="fav-team" className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Favorite Team</label>
-                  <select id="fav-team" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white mt-2 outline-none focus:border-blue-500 appearance-none transition-colors">
-                    <option value="in">India 🇮🇳</option>
-                    <option value="au">Australia 🇦🇺</option>
-                    <option value="en">England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
-                  </select>
-                </div>
-              </div>
-              <button type="button" className="px-6 py-3 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 transition-colors active:scale-95">
-                Save Profile
-              </button>
-            </div>
-          )}
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

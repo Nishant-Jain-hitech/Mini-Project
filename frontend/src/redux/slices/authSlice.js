@@ -39,12 +39,16 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // This was missing!
     setCredentials: (state, action) => {
       const { user, token } = action.payload;
       state.user = user;
       state.token = token;
       state.isAuthenticated = true;
+    },
+    updateWatchlist: (state, action) => {
+      if (state.user) {
+        state.user.watchlist = action.payload;
+      }
     },
     logout: (state) => {
       state.user = null;
@@ -72,7 +76,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, updateWatchlist } = authSlice.actions;
 
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectCurrentToken = (state) => state.auth.token;

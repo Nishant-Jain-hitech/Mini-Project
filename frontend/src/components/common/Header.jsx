@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, selectCurrentUser, selectIsAuthenticated } from '../../redux/slices/authSlice';
 import toast from 'react-hot-toast';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Bookmark } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +34,12 @@ const Header = () => {
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
             <Link to="/web-series" className="hover:text-blue-500 transition-colors">Web Series</Link>
-            <Link to="/movies" className="hover:text-blue-500 transition-colors">Movies</Link>
+            
+            {/* UPDATED: Movies replaced with Watchlist */}
+            <Link to="/watchlist" className="hover:text-blue-500 transition-colors flex items-center gap-1.5">
+              Watchlist
+            </Link>
+
             <Link to="/live-scorecard" className="flex items-center gap-2 hover:text-red-500 transition-colors">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -104,7 +109,10 @@ const Header = () => {
             className="lg:hidden absolute top-[65px] left-0 w-full bg-slate-900 border-b border-white/5 p-6 flex flex-col gap-6 overflow-hidden"
           >
             <Link to="/web-series" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]">Web Series</Link>
-            <Link to="/movies" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]">Movies</Link>
+            
+            {/* UPDATED: Mobile Watchlist Link */}
+            <Link to="/watchlist" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]">Watchlist</Link>
+            
             <Link to="/live-scorecard" onClick={() => setIsMenuOpen(false)} className="text-red-500 font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-3">
               <span className="flex h-2 w-2 rounded-full bg-red-600"></span>
               Live Scorecard

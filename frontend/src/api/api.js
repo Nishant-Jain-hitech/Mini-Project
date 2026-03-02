@@ -15,19 +15,65 @@ apiclient.interceptors.request.use((config) => {
     return config;
 });
 
+apiclient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        let message = "An unexpected error occurred";
+
+        if (error.response) {
+            const detail = error.response.data?.detail;
+
+            if (Array.isArray(detail)) {
+                message = detail[0]?.msg || "Validation error";
+            }
+            else if (typeof detail === "string") {
+                message = detail;
+            }
+            else if (detail?.msg) {
+                message = detail.msg;
+            }
+        } else if (error.request) {
+            message = "No response from server. Check your connection.";
+        } else {
+            message = error.message;
+        }
+
+        error.message = message;
+        return Promise.reject(error);
+    }
+);
+
 export const loginUser = async (formData) => {
-    // Send standard JSON with the exact keys your UserLogin model expects
     const credentials = {
         email: formData.email,
         password: formData.password
     };
-
     const response = await apiclient.post("/auth/login", credentials);
     return response.data;
 };
 
 export const registerUser = async (userData) => {
     const response = await apiclient.post("/auth/register", userData);
+    return response.data;
+};
+
+export const updateProfile = async (username, profileImage) => {
+    const response = await apiclient.put("/auth/update-profile", { 
+        username: username, 
+        profile_image: profileImage 
+    }); 
+    return response.data;
+};
+
+export const toggleWatchlistAPI = async (contentId) => {
+    const response = await apiclient.post("/auth/watchlist/toggle", { 
+        content_id: contentId 
+    });
+    return response.data;
+};
+
+export const fetchWatchlist = async () => {
+    const response = await apiclient.get("/auth/watchlist");
     return response.data;
 };
 

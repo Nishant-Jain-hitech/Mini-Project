@@ -23,7 +23,7 @@ import LiveScorecard from './pages/LiveScorecard'
 import Footer from './components/common/Footer'
 import Series from './pages/Series'
 import Landing from './pages/Landing'
-
+import Watchlist from './pages/Watchlist'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 function App() {
@@ -32,7 +32,8 @@ function App() {
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const isLandingPage = location.pathname === '/';
-  const showLayout = !isAuthPage && !isLandingPage;
+  
+  const showLayout = !isAuthPage; 
 
   return (
     <div className='h-screen w-screen bg-slate-950 text-white flex flex-col overflow-hidden relative font-sans'>
@@ -53,7 +54,7 @@ function App() {
       {showLayout && <Header />}
 
       <AnimatePresence>
-        {!sidebarOpen && showLayout && (
+        {!sidebarOpen && showLayout && !isLandingPage && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -67,28 +68,23 @@ function App() {
       </AnimatePresence>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {showLayout && (
+        {showLayout && !isLandingPage && (
           <Sidebar
             isMobileOpen={sidebarOpen}
             toggleSidebar={() => setSidebarOpen(false)}
           />
         )}
 
-        {/* FIX: Added flex flex-col to main and w-full to ensure expansion */}
-        <main className={`flex-1 overflow-y-auto custom-scrollbar scroll-smooth bg-slate-950 flex flex-col ${(isAuthPage || isLandingPage) ? 'items-center justify-center' : ''}`}>
+        <main className="flex-1 min-h-0 flex flex-col overflow-y-auto custom-scrollbar scroll-smooth bg-slate-950">
           
-          {/* FIX: Wrapper div with flex-1 to push the footer down */}
-          <div className="flex-1 w-full">
+          <div className={`flex-1 w-full ${isAuthPage ? 'flex items-center justify-center' : ''}`}>
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>
-                {/* Public Routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* All Other Routes - Protected */}
                 <Route element={<ProtectedRoute />}>
-                  {/* Home is now at /home as per the new landing page structure */}
                   <Route path="/home" element={<Home />} />
                   <Route path="/pavilion" element={<Pavilion />} />
                   <Route path="/web-series" element={<WebSeries />} />
@@ -104,6 +100,7 @@ function App() {
                   <Route path="/fan-clubs" element={<FanClubs />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/live-scorecard" element={<LiveScorecard />} />
+                  <Route path="/watchlist" element={<Watchlist />} />
                 </Route>
               </Routes>
             </AnimatePresence>
