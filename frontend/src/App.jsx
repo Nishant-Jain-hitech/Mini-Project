@@ -9,7 +9,6 @@ import Pavilion from './pages/Pavilion'
 import Cinema from './pages/Cinema'
 import WebSeries from './pages/WebSeries'
 import Movies from './pages/Movies'
-import LiveMatch from './pages/LiveMatch'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AboutUs from './pages/AboutUs'
@@ -19,6 +18,9 @@ import CookiePolicy from './pages/legal/CookiePolicy'
 import TermsOfService from './pages/legal/TermsOfService'
 import OfficialMerch from './pages/community/OfficialMerch';
 import FanClubs from './pages/community/FanClubs';
+import Profile from './pages/Profile'
+import LiveScorecard from './pages/LiveScorecard'
+
 import Footer from './components/common/Footer'
 import Series from './pages/Series'
 
@@ -76,7 +78,6 @@ function App() {
               <Route path="/web-series" element={<WebSeries />} />
               <Route path="/series" element={<Series />} />
               <Route path="/movies" element={<Movies />} />
-              <Route path="/live" element={<LiveMatch />} />
               <Route path="/cinema" element={<Cinema />} />
               <Route path="/about-us" element={<AboutUs />} />
               <Route path="/contact" element={<Contact />} />
@@ -85,6 +86,8 @@ function App() {
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/merch" element={<OfficialMerch />} />
               <Route path="/fan-clubs" element={<FanClubs />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/live-scorecard" element={<LiveScorecard />} />
 
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />

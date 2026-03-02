@@ -10,7 +10,7 @@ const LegalLayout = ({ title, lastUpdated, children }) => {
                     to="/"
                     className="text-blue-500 text-xs font-black uppercase tracking-widest hover:text-white transition-colors mb-8 inline-block"
                 >
-                    ← Back to Pavilion
+                    ← Back to Home
                 </Link>
 
                 <header className="mb-12">
