@@ -14,7 +14,7 @@ async def get_match_scorecard(match_id: str):
             return cache["data"]
 
     async with httpx.AsyncClient() as client:
-        url = f"{settings.VITE_BASE_URL}/match_scorecard"
+        url = f"{settings.CRIC_BASE_URL}/match_scorecard"
         params = {
             "apikey": settings.CRIC_API_KEY,
             "id": match_id
@@ -53,7 +53,7 @@ async def get_live_matches():
             return cache["data"]
 
     async with httpx.AsyncClient() as client:
-        url = f"{settings.VITE_BASE_URL}/currentMatches"
+        url = f"{settings.CRIC_BASE_URL}/currentMatches"
         params = {"apikey": settings.CRIC_API_KEY}
         
         response = await client.get(url, params=params)

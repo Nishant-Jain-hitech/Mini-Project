@@ -11,7 +11,7 @@ const LiveScorecard = () => {
       let matchIdToFetch = "ea479cff-ddbe-48e0-9e4a-528f61a8a175";
 
       const liveMatches = await fetchLiveMatches();
-      if (liveMatches && liveMatches.status === "success" && liveMatches.data.length > 0) {
+      if (liveMatches && liveMatches.status === "success" && liveMatches.data?.length > 0) {
         matchIdToFetch = liveMatches.data[0].id;
       }
 
@@ -20,11 +20,20 @@ const LiveScorecard = () => {
       if (result && result.status === "success") {
         setMatch(result.data);
         setError(null);
-      } else {
-        setError("Could not load live scores. Check API credits.");
+      } else if (result && result.status === "failure") {
+        const fallbackMatch = liveMatches?.data?.find(m => m.id === matchIdToFetch);
+        if (fallbackMatch) {
+          setMatch({
+            ...fallbackMatch,
+            scorecard: [] 
+          });
+          setError("Basic score synced. Detailed scorecard currently unavailable.");
+        } else {
+          setError(result.reason || "Match data not found.");
+        }
       }
     } catch (err) {
-      setError("Network error occurred.");
+      setError("Network error occurred while syncing scores.");
     } finally {
       setLoading(false);
     }
@@ -52,19 +61,25 @@ const LiveScorecard = () => {
       <div className="min-h-screen bg-[#020617] flex items-center justify-center p-8 text-center">
         <div className="bg-slate-900 border border-white/10 p-10 rounded-[2rem]">
           <p className="text-red-500 font-bold mb-4">{error}</p>
-          <button onClick={getScoreData} className="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-black uppercase">Retry</button>
+          <button onClick={getScoreData} className="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-black uppercase">Retry Sync</button>
         </div>
       </div>
     );
   }
 
-  const currentInnings = match.scorecard?.[match.scorecard.length - 1];
+  const hasScorecard = match.scorecard && match.scorecard.length > 0;
+  const currentInnings = hasScorecard ? match.scorecard[match.scorecard.length - 1] : null;
   const battingStats = currentInnings?.batting || [];
   const bowlingStats = currentInnings?.bowling || [];
 
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-8 animate-in fade-in duration-700">
       <div className="max-w-7xl mx-auto">
+        {error && (
+          <div className="mb-4 bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl text-blue-400 text-[10px] font-black uppercase tracking-widest text-center">
+            Note: {error}
+          </div>
+        )}
         
         <header className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 md:p-10 mb-8 relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 p-6">
@@ -78,9 +93,9 @@ const LiveScorecard = () => {
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mt-4">
             <div className="text-center md:text-left">
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">{match.teams[0]}</h3>
+              <h3 className="text-white font-black uppercase tracking-widest text-sm">{match.teams?.[0]}</h3>
               <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                {match.score?.[0]?.inning}: {match.score?.[0]?.r}/{match.score?.[0]?.w} ({match.score?.[0]?.o} ov)
+                {match.score?.[0]?.inning || "Innings 1"}: {match.score?.[0]?.r || 0}/{match.score?.[0]?.w || 0} ({match.score?.[0]?.o || 0} ov)
               </p>
             </div>
 
@@ -93,7 +108,7 @@ const LiveScorecard = () => {
             </div>
 
             <div className="text-center md:text-right">
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">{match.teams[1]}</h3>
+              <h3 className="text-white font-black uppercase tracking-widest text-sm">{match.teams?.[1]}</h3>
               <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
                 {match.score?.[1]?.inning || "Yet to bat"}
               </p>
@@ -103,62 +118,77 @@ const LiveScorecard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
-              <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
-                <h4 className="text-white text-xs font-black uppercase tracking-widest">Batting: {currentInnings?.inning || "N/A"}</h4>
-                <div className="flex gap-4 md:gap-8 text-[10px] font-bold text-slate-500 uppercase">
-                  <span className="w-8 text-center">R</span>
-                  <span className="w-8 text-center">B</span>
-                  <span className="w-8 text-center">4s</span>
-                  <span className="w-8 text-center">6s</span>
-                  <span className="w-12 text-center">SR</span>
-                </div>
-              </div>
-              <div className="p-2">
-                {battingStats.length > 0 ? battingStats.map((player, idx) => (
-                  <div key={idx} className="flex justify-between items-center px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-blue-400">{player.batsman?.name}</span>
-                      <span className="text-[9px] text-slate-500 uppercase font-medium">{player.dismissalText}</span>
-                    </div>
-                    <div className="flex gap-4 md:gap-8 text-xs font-black text-white">
-                      <span className="w-8 text-center">{player.r}</span>
-                      <span className="w-8 text-center text-slate-500">{player.b}</span>
-                      <span className="w-8 text-center text-slate-500">{player["4s"]}</span>
-                      <span className="w-8 text-center text-slate-500">{player["6s"]}</span>
-                      <span className="w-12 text-center text-slate-500">{player.sr}</span>
+            {hasScorecard ? (
+              <>
+                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
+                  <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                    <h4 className="text-white text-xs font-black uppercase tracking-widest">Batting: {currentInnings?.inning}</h4>
+                    <div className="flex gap-4 md:gap-8 text-[10px] font-bold text-slate-500 uppercase">
+                      <span className="w-8 text-center">R</span>
+                      <span className="w-8 text-center">B</span>
+                      <span className="w-8 text-center">4s</span>
+                      <span className="w-8 text-center">6s</span>
+                      <span className="w-12 text-center">SR</span>
                     </div>
                   </div>
-                )) : <p className="text-slate-500 text-xs p-4">Wait for the next over...</p>}
-              </div>
-            </div>
+                  <div className="p-2">
+                    {battingStats.map((player, idx) => (
+                      <div key={idx} className="flex justify-between items-center px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-blue-400">{player.batsman?.name}</span>
+                          <span className="text-[9px] text-slate-500 uppercase font-medium">{player.dismissalText}</span>
+                        </div>
+                        <div className="flex gap-4 md:gap-8 text-xs font-black text-white">
+                          <span className="w-8 text-center">{player.r}</span>
+                          <span className="w-8 text-center text-slate-500">{player.b}</span>
+                          <span className="w-8 text-center text-slate-500">{player["4s"]}</span>
+                          <span className="w-8 text-center text-slate-500">{player["6s"]}</span>
+                          <span className="w-12 text-center text-slate-500">{player.sr}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
-              <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
-                <h4 className="text-white text-xs font-black uppercase tracking-widest">Bowling</h4>
-                <div className="flex gap-4 md:gap-8 text-[10px] font-bold text-slate-500 uppercase">
-                  <span className="w-8 text-center">O</span>
-                  <span className="w-8 text-center">M</span>
-                  <span className="w-8 text-center">R</span>
-                  <span className="w-8 text-center">W</span>
-                  <span className="w-12 text-center">EC</span>
-                </div>
-              </div>
-              <div className="p-2">
-                {bowlingStats.length > 0 ? bowlingStats.map((player, idx) => (
-                  <div key={idx} className="flex justify-between items-center px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">
-                    <span className="text-sm font-bold text-slate-300">{player.bowler?.name}</span>
-                    <div className="flex gap-4 md:gap-8 text-xs font-black text-white">
-                      <span className="w-8 text-center">{player.o}</span>
-                      <span className="w-8 text-center text-slate-500">{player.m}</span>
-                      <span className="w-8 text-center text-slate-500">{player.r}</span>
-                      <span className="w-8 text-center text-blue-500">{player.w}</span>
-                      <span className="w-12 text-center text-slate-500">{player.eco}</span>
+                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
+                  <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                    <h4 className="text-white text-xs font-black uppercase tracking-widest">Bowling</h4>
+                    <div className="flex gap-4 md:gap-8 text-[10px] font-bold text-slate-500 uppercase">
+                      <span className="w-8 text-center">O</span>
+                      <span className="w-8 text-center">M</span>
+                      <span className="w-8 text-center">R</span>
+                      <span className="w-8 text-center">W</span>
+                      <span className="w-12 text-center">EC</span>
                     </div>
                   </div>
-                )) : <p className="text-slate-500 text-xs p-4">No bowling data.</p>}
+                  <div className="p-2">
+                    {bowlingStats.map((player, idx) => (
+                      <div key={idx} className="flex justify-between items-center px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">
+                        <span className="text-sm font-bold text-slate-300">{player.bowler?.name}</span>
+                        <div className="flex gap-4 md:gap-8 text-xs font-black text-white">
+                          <span className="w-8 text-center">{player.o}</span>
+                          <span className="w-8 text-center text-slate-500">{player.m}</span>
+                          <span className="w-8 text-center text-slate-500">{player.r}</span>
+                          <span className="w-8 text-center text-blue-500">{player.w}</span>
+                          <span className="w-12 text-center text-slate-500">{player.eco}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-20 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                   <span className="text-2xl opacity-20">📊</span>
+                </div>
+                <h4 className="text-white font-black uppercase tracking-widest text-xs mb-2">Scorecard Unavailable</h4>
+                <p className="text-slate-500 text-[10px] max-w-xs leading-relaxed font-bold uppercase tracking-tighter">
+                  Detailed ball-by-ball statistics are not provided by the API for this specific match. 
+                  Check back as the match progresses.
+                </p>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -167,16 +197,18 @@ const LiveScorecard = () => {
               <div className="space-y-4">
                 <div>
                   <p className="text-slate-500 text-[9px] uppercase font-bold">Venue</p>
-                  <p className="text-slate-200 text-xs font-bold">{match.venue}</p>
+                  <p className="text-slate-200 text-xs font-bold">{match.venue || "TBD"}</p>
                 </div>
                 <div>
                   <p className="text-slate-500 text-[9px] uppercase font-bold">Match Date</p>
-                  <p className="text-slate-200 text-xs font-bold">{match.date}</p>
+                  <p className="text-slate-200 text-xs font-bold">{match.date || "N/A"}</p>
                 </div>
-                <div>
-                  <p className="text-slate-500 text-[9px] uppercase font-bold">Toss Update</p>
-                  <p className="text-slate-200 text-xs font-bold">{match.tossWinner} won & chose to {match.tossChoice}</p>
-                </div>
+                {match.tossWinner && (
+                  <div>
+                    <p className="text-slate-500 text-[9px] uppercase font-bold">Toss Update</p>
+                    <p className="text-slate-200 text-xs font-bold">{match.tossWinner} won & chose to {match.tossChoice}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
