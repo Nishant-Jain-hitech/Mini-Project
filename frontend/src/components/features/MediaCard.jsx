@@ -9,16 +9,12 @@ import toast from 'react-hot-toast';
 const MediaCard = ({ id, title, rating, category, image }) => {
     const dispatch = useDispatch();
     const user = useSelector(selectCurrentUser);
-
-    // Check if item is in user's watchlist
     const isInWatchlist = user?.watchlist?.some(item =>
         (typeof item === 'string' ? item === id : item.id === id)
     );
 
     const handleWatchlistToggle = async (e) => {
         e.stopPropagation();
-
-        // Create the object that the backend expects
         const payload = {
             id: String(id),
             title: String(title),
@@ -28,7 +24,6 @@ const MediaCard = ({ id, title, rating, category, image }) => {
         };
 
         try {
-            // Send the WHOLE object, not just 'id'
             const response = await toggleWatchlistAPI(payload);
             dispatch(updateWatchlist(response.watchlist));
 

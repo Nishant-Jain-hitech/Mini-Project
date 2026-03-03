@@ -84,19 +84,15 @@ export const fetchSeriesList = async (offset = 0) => {
     } catch (error) {
         console.error("Error fetching series:", error);
         return null;
-    }
-};
-
+    }};
 export const fetchLiveMatches = async () => {
     try {
-        const response = await apiclient.get("/cricket/matches");
+        const response=await apiclient.get("/cricket/matches");
         return response.data;
     } catch (error) {
         console.error("Error fetching live matches:", error);
         return null;
-    }
-};
-
+    }};
 export const fetchMatchScorecard = async (matchId) => {
     try {
         const response = await apiclient.get(`/cricket/scorecard/${matchId}`);
