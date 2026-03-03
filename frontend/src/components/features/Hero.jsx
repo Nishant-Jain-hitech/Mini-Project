@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
 const Hero = () => {
   return (
@@ -22,7 +22,6 @@ const Hero = () => {
 
       {/* Content Container */}
       <div className="relative h-full max-w-7xl mx-auto px-4 md:px-8 flex flex-col justify-center gap-6">
-
         {/* Live Score Mini-Card with Pulse */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -70,15 +69,34 @@ const Hero = () => {
           className="flex flex-wrap items-center gap-4 pt-4"
         >
           <button className="group bg-white text-slate-900 font-black px-8 py-4 rounded-xl hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-xl shadow-white/5">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-current transition-transform group-hover:scale-125" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 fill-current transition-transform group-hover:scale-125"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                clipRule="evenodd"
+              />
             </svg>
             WATCH NOW
           </button>
 
           <button className="bg-white/5 backdrop-blur-md text-white font-black px-8 py-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             WATCHLIST
           </button>
@@ -92,8 +110,12 @@ const Hero = () => {
         transition={{ delay: 1, duration: 0.5 }}
         className="absolute bottom-12 right-8 hidden lg:block text-right"
       >
-        <p className="text-5xl font-black text-white leading-none">4.9<span className="text-blue-500">/</span>5</p>
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Fan Rating • 20k Reviews</p>
+        <p className="text-5xl font-black text-white leading-none">
+          4.9<span className="text-blue-500">/</span>5
+        </p>
+        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">
+          Fan Rating • 20k Reviews
+        </p>
       </motion.div>
     </div>
   );

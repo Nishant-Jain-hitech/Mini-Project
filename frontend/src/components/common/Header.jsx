@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { logout, selectCurrentUser, selectIsAuthenticated } from '../../redux/slices/authSlice';
-import toast from 'react-hot-toast';
-import { User, LogOut, Bookmark } from 'lucide-react';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  logout,
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "../../redux/slices/authSlice";
+import toast from "react-hot-toast";
+import { User, LogOut, Bookmark } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,10 +20,10 @@ const Header = () => {
 
   const handleLogout = (e) => {
     e.stopPropagation();
-    localStorage.removeItem('token'); 
+    localStorage.removeItem("token");
     dispatch(logout());
-    toast.success('Signed out successfully');
-    navigate('/login');
+    toast.success("Signed out successfully");
+    navigate("/login");
     setIsMenuOpen(false);
   };
 
@@ -27,20 +31,34 @@ const Header = () => {
     <nav className="sticky top-0 z-[100] h-[65px] w-full bg-slate-900/80 backdrop-blur-xl border-b border-white/5 px-4 md:px-8 flex items-center">
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center gap-4 md:gap-10">
-          <Link to="/" className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase">
+          <Link
+            to="/"
+            className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase"
+          >
             Cric<span className="text-blue-500">Social</span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
-            <Link to="/web-series" className="hover:text-blue-500 transition-colors">Web Series</Link>
-            
+            <Link
+              to="/web-series"
+              className="hover:text-blue-500 transition-colors"
+            >
+              Web Series
+            </Link>
+
             {/* UPDATED: Movies replaced with Watchlist */}
-            <Link to="/watchlist" className="hover:text-blue-500 transition-colors flex items-center gap-1.5">
+            <Link
+              to="/watchlist"
+              className="hover:text-blue-500 transition-colors flex items-center gap-1.5"
+            >
               Watchlist
             </Link>
 
-            <Link to="/live-scorecard" className="flex items-center gap-2 hover:text-red-500 transition-colors">
+            <Link
+              to="/live-scorecard"
+              className="flex items-center gap-2 hover:text-red-500 transition-colors"
+            >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
@@ -62,7 +80,7 @@ const Header = () => {
                   <User className="w-4 h-4 text-blue-400" />
                 </div>
                 <span className="text-[10px] font-black uppercase text-white tracking-widest group-hover:text-blue-400 transition-colors">
-                  {user?.username || 'Profile'}
+                  {user?.username || "Profile"}
                 </span>
               </Link>
               <button
@@ -91,9 +109,22 @@ const Header = () => {
             aria-label="Toggle Menu"
           >
             <div className="w-6 h-6 flex flex-col justify-center items-center gap-1.5">
-              <motion.span animate={isMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} className="w-full h-0.5 bg-current rounded-full" />
-              <motion.span animate={isMenuOpen ? { opacity: 0 } : { opacity: 1 }} className="w-full h-0.5 bg-current rounded-full" />
-              <motion.span animate={isMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }} className="w-full h-0.5 bg-current rounded-full" />
+              <motion.span
+                animate={
+                  isMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }
+                }
+                className="w-full h-0.5 bg-current rounded-full"
+              />
+              <motion.span
+                animate={isMenuOpen ? { opacity: 0 } : { opacity: 1 }}
+                className="w-full h-0.5 bg-current rounded-full"
+              />
+              <motion.span
+                animate={
+                  isMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }
+                }
+                className="w-full h-0.5 bg-current rounded-full"
+              />
             </div>
           </button>
         </div>
@@ -104,16 +135,32 @@ const Header = () => {
         {isMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden absolute top-[65px] left-0 w-full bg-slate-900 border-b border-white/5 p-6 flex flex-col gap-6 overflow-hidden"
           >
-            <Link to="/web-series" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]">Web Series</Link>
-            
+            <Link
+              to="/web-series"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]"
+            >
+              Web Series
+            </Link>
+
             {/* UPDATED: Mobile Watchlist Link */}
-            <Link to="/watchlist" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]">Watchlist</Link>
-            
-            <Link to="/live-scorecard" onClick={() => setIsMenuOpen(false)} className="text-red-500 font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-3">
+            <Link
+              to="/watchlist"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-slate-300 font-black uppercase tracking-[0.2em] text-[10px]"
+            >
+              Watchlist
+            </Link>
+
+            <Link
+              to="/live-scorecard"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-red-500 font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-3"
+            >
               <span className="flex h-2 w-2 rounded-full bg-red-600"></span>
               Live Scorecard
             </Link>
