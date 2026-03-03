@@ -32,8 +32,8 @@ function App() {
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const isLandingPage = location.pathname === '/';
-  
-  const showLayout = !isAuthPage; 
+
+  const showLayout = !isAuthPage;
 
   return (
     <div className='h-screen w-screen bg-slate-950 text-white flex flex-col overflow-hidden relative font-sans'>
@@ -76,7 +76,7 @@ function App() {
         )}
 
         <main className="flex-1 min-h-0 flex flex-col overflow-y-auto custom-scrollbar scroll-smooth bg-slate-950">
-          
+
           <div className={`flex-1 w-full ${isAuthPage ? 'flex items-center justify-center' : ''}`}>
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>

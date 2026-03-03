@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import Hero from '../components/features/Hero';
-import { TrendingSection } from '../components/features/MediaCard';
+import React from "react";
+import { motion } from "framer-motion";
+import Hero from "../components/features/Hero";
+import { TrendingSection } from "../components/features/MediaCard";
 
 const Home = () => {
   const originalSeries = [
@@ -10,29 +10,33 @@ const Home = () => {
       title: "The Gabba Miracle",
       episodes: "6 Episodes",
       tag: "ORIGINAL",
-      image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=600"
+      image:
+        "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 2,
       title: "Behind the Stumps",
       episodes: "8 Episodes",
       tag: "PREMIUM",
-      image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=600"
+      image:
+        "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 3,
       title: "Spin Kings",
       episodes: "4 Episodes",
       tag: "ORIGINAL",
-      image: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?auto=format&fit=crop&q=80&w=600"
+      image:
+        "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 4,
       title: "Willow & Leather",
       episodes: "10 Episodes",
       tag: "NEW",
-      image: "https://images.unsplash.com/photo-1593341646782-e0b495cff86d?auto=format&fit=crop&q=80&w=600"
-    }
+      image:
+        "https://images.unsplash.com/photo-1593341646782-e0b495cff86d?auto=format&fit=crop&q=80&w=600",
+    },
   ];
 
   return (
@@ -78,7 +82,6 @@ const Home = () => {
                 className="group cursor-pointer"
               >
                 <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-colors duration-500 group-hover:border-blue-500/30">
-
                   {/* Image with a soft "breath" animation on hover */}
                   <motion.img
                     src={series.image}
@@ -90,9 +93,7 @@ const Home = () => {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent p-4 flex flex-col justify-end">
                     {/* Minimal tag fade */}
-                    <motion.span
-                      className="text-[8px] font-black text-blue-400 tracking-[0.2em] mb-1"
-                    >
+                    <motion.span className="text-[8px] font-black text-blue-400 tracking-[0.2em] mb-1">
                       {series.tag}
                     </motion.span>
 

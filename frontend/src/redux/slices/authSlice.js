@@ -1,42 +1,44 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { loginUser, registerUser } from '../../api/api';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { loginUser, registerUser } from "../../api/api";
 
 export const loginThunk = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (credentials, { rejectWithValue }) => {
     try {
       const data = await loginUser(credentials);
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem("token", data.access_token);
       return data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.detail || 'Login failed');
+      return rejectWithValue(error.response?.data?.detail || "Login failed");
     }
-  }
+  },
 );
 
 export const registerThunk = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async (userData, { rejectWithValue }) => {
     try {
       const data = await registerUser(userData);
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem("token", data.access_token);
       return data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.detail || 'Registration failed');
+      return rejectWithValue(
+        error.response?.data?.detail || "Registration failed",
+      );
     }
-  }
+  },
 );
 
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: localStorage.getItem("token"),
+  isAuthenticated: !!localStorage.getItem("token"),
   loading: false,
   error: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setCredentials: (state, action) => {
@@ -54,7 +56,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     },
   },
   extraReducers: (builder) => {
