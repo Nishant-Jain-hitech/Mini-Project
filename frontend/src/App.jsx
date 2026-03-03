@@ -85,8 +85,6 @@ function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/about-us" element={<AboutUs />} />
-                <Route path="/contact" element={<Contact />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/home" element={<Home />} />
@@ -98,6 +96,8 @@ function App() {
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/contact" element={<Contact />} />
                   <Route path="/merch" element={<OfficialMerch />} />
                   <Route path="/fan-clubs" element={<FanClubs />} />
                   <Route path="/profile" element={<Profile />} />
