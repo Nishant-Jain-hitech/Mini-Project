@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from typing import Optional, List
 
-from models.user import UserCreate, UserLogin, UserResponse, UserUpdate
+from models.user import UserCreate, UserLogin, UserResponse, UserUpdate, MovieItem
 from utils import get_password_hash, verify_password, create_access_token
 from database import get_db
 
@@ -125,16 +125,17 @@ async def update_profile(
         "username": update_data.username,
         "profile_image": final_image_for_frontend
     }
-
+    
 @router.post("/watchlist/toggle")
 async def toggle_watchlist(
-    content_id: str = Body(..., embed=True),
+    movie: MovieItem,
     current_user: dict = Depends(get_current_user)
 ):
     db = get_db()
-    current_watchlist = current_user.get("watchlist", [])
+    content_id = movie.id
+    current_watchlist_ids = current_user.get("watchlist", [])
     
-    if content_id in current_watchlist:
+    if content_id in current_watchlist_ids:
         await db.users.update_one(
             {"email": current_user["email"]},
             {"$pull": {"watchlist": content_id}}
@@ -145,6 +146,12 @@ async def toggle_watchlist(
             {"email": current_user["email"]},
             {"$addToSet": {"watchlist": content_id}}
         )
+        
+        # Insert into the shared watchlist_items collection if it doesn't exist
+        existing_item = await db.watchlist_items.find_one({"id": content_id})
+        if not existing_item:
+            await db.watchlist_items.insert_one(movie.model_dump())
+            
         action = "added"
         
     updated_user = await db.users.find_one({"email": current_user["email"]})
@@ -163,7 +170,7 @@ async def get_watchlist(current_user: dict = Depends(get_current_user)):
         if not watchlist_ids:
             return []
             
-        cursor = db.cinema.find({"id": {"$in": watchlist_ids}})
+        cursor = db.watchlist_items.find({"id": {"$in": watchlist_ids}})
         items = await cursor.to_list(length=100)
         
         for item in items:

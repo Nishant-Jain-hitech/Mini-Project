@@ -54,6 +54,12 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class MovieItem(BaseModel):
+    id: str
+    title: str
+    rating: str
+    category: str
+    image: str
 
 class UserUpdate(BaseModel):
     username: str = Field(..., min_length=3, max_length=20)

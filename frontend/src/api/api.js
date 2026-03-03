@@ -65,10 +65,8 @@ export const updateProfile = async (username, profileImage) => {
     return response.data;
 };
 
-export const toggleWatchlistAPI = async (contentId) => {
-    const response = await apiclient.post("/auth/watchlist/toggle", { 
-        content_id: contentId 
-    });
+export const toggleWatchlistAPI = async (payload) => {
+    const response = await apiclient.post("/auth/watchlist/toggle", payload);
     return response.data;
 };
 

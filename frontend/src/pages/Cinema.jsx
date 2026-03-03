@@ -61,14 +61,31 @@ const Cinema = () => {
       return;
     }
 
+    // Find the full item object from your media array
+    const itemToToggle = media.find(m => m.id === contentId);
+    
+    if (!itemToToggle) return;
+
+    // Construct the object the backend Pydantic model expects
+    const movieData = {
+      id: String(itemToToggle.id),
+      title: String(itemToToggle.title),
+      rating: String(itemToToggle.rating),
+      category: String(itemToToggle.category || itemToToggle.type), // Fallback if category is missing
+      image: String(itemToToggle.image)
+    };
+
     try {
-      const response = await toggleWatchlistAPI(contentId);
+      // Send the WHOLE object, not just the string ID
+      const response = await toggleWatchlistAPI(movieData);
+      
       if (response.status === "success") {
         dispatch(updateWatchlist(response.watchlist));
         toast.success(response.action === 'added' ? "Added to Watchlist" : "Removed from Watchlist");
       }
     } catch (err) {
-      toast.error("Failed to update watchlist");
+      // Your interceptor in api.js will provide a clear message now
+      toast.error(err.message || "Failed to update watchlist");
     }
   };
 
