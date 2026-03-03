@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchWatchlist } from "../api/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquare, MessageSquarePlus } from "lucide-react";
 import toast from "react-hot-toast";
 
 const Watchlist = () => {
