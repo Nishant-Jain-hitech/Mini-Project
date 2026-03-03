@@ -299,7 +299,7 @@ const Profile = () => {
                     disabled={isUpdating}
                     className="w-full md:w-auto px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 disabled:opacity-50 transition-all active:scale-95"
                   >
-                    {isUpdating ? "Syncing..." : "Save Changes"}
+                    {isUpdating ? "Syncing..." : "Save Changes!"}
                   </button>
                 </div>
               )}
