@@ -10,15 +10,10 @@ const Footer = () => {
 
   return (
     <footer className="w-full border-t border-white/5 bg-[#020617] relative overflow-hidden flex-shrink-0">
-      {/* Decorative top border gradient */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-
-      {/* Background glow effect */}
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-blue-600/10 blur-[100px] pointer-events-none" />
-
       <div className="max-w-7xl mx-auto pt-12 pb-8 px-6 lg:px-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-          {/* Brand Section */}
           <div className="col-span-1">
             <h2 className="text-xl font-black tracking-tighter text-white mb-4 uppercase italic">
               CRIC<span className="text-blue-500">SOCIAL</span>
@@ -47,11 +42,11 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/movies"
+                  to="/news"
                   className="hover:text-blue-500 transition-colors flex items-center gap-2 group"
                 >
                   <span className="h-px w-0 bg-blue-500 group-hover:w-3 transition-all duration-300" />{" "}
-                  Movies
+                  News
                 </Link>
               </li>
               <li>

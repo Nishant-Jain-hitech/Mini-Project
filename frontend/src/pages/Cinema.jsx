@@ -78,34 +78,45 @@ const Cinema = () => {
       return;
     }
 
-    // Find the full item object from your media array
     const itemToToggle = media.find((m) => m.id === contentId);
-
     if (!itemToToggle) return;
 
-    // Construct the object the backend Pydantic model expects
     const movieData = {
       id: String(itemToToggle.id),
       title: String(itemToToggle.title),
       rating: String(itemToToggle.rating),
-      category: String(itemToToggle.category || itemToToggle.type), // Fallback if category is missing
+      category: String(itemToToggle.category || itemToToggle.type),
       image: String(itemToToggle.image),
     };
 
     try {
-      // Send the WHOLE object, not just the string ID
+      // This calls your POST /auth/watchlist/toggle
       const response = await toggleWatchlistAPI(movieData);
 
-      if (response.status === "success") {
+      // IMPORTANT: Your backend returns { status, action, watchlist }
+      if (
+        response.status === "success" ||
+        response.message?.includes("success")
+      ) {
+        // Update Redux state with the new array from backend
+        // This ensures the "Check" icon appears/disappears immediately
         dispatch(updateWatchlist(response.watchlist));
+
         toast.success(
           response.action === "added"
             ? "Added to Watchlist"
             : "Removed from Watchlist",
+          {
+            style: {
+              borderRadius: "10px",
+              background: "#020617",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.1)",
+            },
+          },
         );
       }
     } catch (err) {
-      // Your interceptor in api.js will provide a clear message now
       toast.error(err.message || "Failed to update watchlist");
     }
   };

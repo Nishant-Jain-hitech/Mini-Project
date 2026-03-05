@@ -42,7 +42,6 @@ apiclient.interceptors.response.use(
   },
 );
 
-
 export const loginUser = async (formData) => {
   const credentials = {
     email: formData.email,
@@ -75,6 +74,12 @@ export const fetchWatchlist = async () => {
   return response.data;
 };
 
+// Fixed to use apiclient (Axios) so the Auth interceptor works
+export const removeFromWatchlist = async (id) => {
+  const response = await apiclient.delete(`/auth/watchlist/${id}`);
+  return response.data;
+};
+
 export const fetchLiveMatches = async () => {
   const response = await apiclient.get("/cricket/matches");
   return response.data;
@@ -88,18 +93,15 @@ export const fetchMatchScorecard = async (matchId) => {
   return response.data;
 };
 
-
 export const fetchFallbackScorecard = async () => {
   const response = await apiclient.get("/cricket/fallback-scorecard");
   return response.data;
 };
 
-
 export const fetchNews = async () => {
   const response = await apiclient.get("/cricket/news");
   return response.data;
 };
-
 
 export const fetchSeriesList = async (offset = 0) => {
   const response = await apiclient.get("/cricket/series", {

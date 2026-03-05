@@ -182,3 +182,23 @@ async def get_watchlist(current_user: dict = Depends(get_current_user)):
         return items
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@router.delete("/watchlist/{movie_id}")
+async def remove_from_watchlist_endpoint(
+    movie_id: str, 
+    current_user: dict = Depends(get_current_user)
+):
+    db = get_db()
+    
+    await db.users.update_one(
+        {"email": current_user["email"]},
+        {"$pull": {"watchlist": movie_id}}
+    )
+
+    updated_user = await db.users.find_one({"email": current_user["email"]})
+    
+    return {
+        "status": "success", 
+        "message": "Item removed", 
+        "watchlist": updated_user.get("watchlist", [])
+    }
