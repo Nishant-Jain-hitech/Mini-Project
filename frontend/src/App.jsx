@@ -9,6 +9,7 @@ import Pavilion from "./pages/Pavilion";
 import Cinema from "./pages/Cinema";
 import WebSeries from "./pages/WebSeries";
 import Movies from "./pages/Movies";
+import News from "./pages/NewsPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AboutUs from "./pages/AboutUs";
@@ -103,6 +104,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/live-scorecard" element={<LiveScorecard />} />
                   <Route path="/watchlist" element={<Watchlist />} />
+                  <Route path="/news" element={<News />} />
                 </Route>
               </Routes>
             </AnimatePresence>

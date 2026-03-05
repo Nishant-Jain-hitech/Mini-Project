@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
+    "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.6",
     "formik": "^2.4.9",
     "framer-motion": "^12.34.3",
@@ -48,4 +49,3 @@
     "vite": "^7.3.1"
   }
 }
-  

@@ -1,10 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Syncopate:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+.font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+.font-sports {
+  font-family: "Syncopate", sans-serif;
+}
+
 @layer base {
-  html, 
-  body, 
+  html,
+  body,
   #root {
     height: 100vh;
     width: 100vw;
@@ -31,6 +46,15 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #334155;
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer utilities {
@@ -39,7 +63,8 @@
   }
 
   @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
       transform: scale(1);
     }

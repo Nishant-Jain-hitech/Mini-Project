@@ -42,6 +42,7 @@ apiclient.interceptors.response.use(
   },
 );
 
+
 export const loginUser = async (formData) => {
   const credentials = {
     email: formData.email,
@@ -74,49 +75,42 @@ export const fetchWatchlist = async () => {
   return response.data;
 };
 
-
-export const fetchSeriesList = async (offset = 0) => {
-  try {
-    const response = await apiclient.get("/cricket/series", {
-      params: { offset: offset },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching series:", error);
-    return null;
-  }
-};
-
-
 export const fetchLiveMatches = async () => {
-  try {
-    const response = await apiclient.get("/cricket/matches");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching live matches:", error);
-    return null;
-  }
+  const response = await apiclient.get("/cricket/matches");
+  return response.data;
 };
-
 
 export const fetchMatchScorecard = async (matchId) => {
-  try {
-    const response = await apiclient.get(`/cricket/scorecard/${matchId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching scorecard:", error);
-    return null;
+  const response = await apiclient.get(`/cricket/scorecard/${matchId}`);
+  if (response.data?.status === "failure") {
+    throw new Error(response.data.reason || "API Limit reached");
   }
+  return response.data;
+};
+
+
+export const fetchFallbackScorecard = async () => {
+  const response = await apiclient.get("/cricket/fallback-scorecard");
+  return response.data;
+};
+
+
+export const fetchNews = async () => {
+  const response = await apiclient.get("/cricket/news");
+  return response.data;
+};
+
+
+export const fetchSeriesList = async (offset = 0) => {
+  const response = await apiclient.get("/cricket/series", {
+    params: { offset: offset },
+  });
+  return response.data;
 };
 
 export const fetchMatchInfo = async (matchId) => {
-  try {
-    const response = await apiclient.get(`/cricket/info/${matchId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching match info:", error);
-    return null;
-  }
+  const response = await apiclient.get(`/cricket/info/${matchId}`);
+  return response.data;
 };
 
 export default apiclient;
