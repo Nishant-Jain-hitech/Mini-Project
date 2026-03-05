@@ -1,29 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchMatchScorecard,
   fetchLiveMatches,
   fetchFallbackScorecard,
-  fetchNews,
 } from "../api/api";
+import {
+  MapPin,
+  Calendar,
+  Trophy,
+  Zap,
+  ShieldCheck,
+  Target,
+} from "lucide-react";
 
 const LiveScorecard = () => {
-  const {
-    data: match,
-    isLoading: matchLoading,
-    error: matchError,
-    isPlaceholderData,
-  } = useQuery({
+  const [activeInning, setActiveInning] = useState(0);
+
+  const { data: match, isLoading } = useQuery({
     queryKey: ["liveScorecard"],
     queryFn: async () => {
       try {
         const liveMatches = await fetchLiveMatches();
         let matchId = "ea479cff-ddbe-48e0-9e4a-528f61a8a175";
-
         if (liveMatches?.status === "success" && liveMatches.data?.length > 0) {
           matchId = liveMatches.data[0].id;
         }
-
         const result = await fetchMatchScorecard(matchId);
         return result.data;
       } catch (err) {
@@ -32,207 +34,306 @@ const LiveScorecard = () => {
       }
     },
     staleTime: 30000,
-    refetchInterval: 30000,
   });
 
-  const { data: news, isLoading: newsLoading } = useQuery({
-    queryKey: ["cricketNews"],
-    queryFn: fetchNews,
-    staleTime: 300000,
-  });
-
-  if (matchLoading && !match) {
+  if (isLoading && !match) {
     return (
       <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-blue-500 font-black uppercase tracking-widest text-xs">
-            Syncing Live Data...
-          </p>
-        </div>
+        <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  const hasScorecard = match?.scorecard && match.scorecard.length > 0;
-  const currentInnings = hasScorecard
-    ? match.scorecard[match.scorecard.length - 1]
-    : null;
-  const battingStats = currentInnings?.batting || [];
-  const bowlingStats = currentInnings?.bowling || [];
+  const scorecard = match?.scorecard || [];
+  const currentData = scorecard[activeInning];
 
   return (
-    <div className="min-h-screen bg-[#020617] p-4 md:p-8 animate-in fade-in duration-700">
-      <div className="max-w-7xl mx-auto">
-        {match?.isFallback && (
-          <div className="mb-4 bg-red-600/10 border border-red-600/20 p-4 rounded-2xl text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
-            ⚠️ Live API Limit Reached. Showing Fallback Data from Backend.
+    <div className="min-h-screen bg-[#020617] font-poppins text-white">
+      <div className="pt-24 md:pt-32 px-4 md:px-8 pb-12 max-w-7xl mx-auto">
+        {/* --- MATCH RESULT HEADER --- */}
+        <header className="bg-slate-900 border border-white/5 rounded-[2.5rem] p-6 md:p-10 mb-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Trophy size={120} />
           </div>
-        )}
 
-        <header className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 md:p-10 mb-8 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-6">
-            <span className="flex items-center gap-2 bg-red-600/10 border border-red-600/20 px-4 py-2 rounded-full">
-              <span
-                className={`w-2 h-2 rounded-full bg-red-600 ${match?.status?.includes("Live") ? "animate-pulse" : ""}`}
-              />
-              <span className="text-red-500 text-[10px] font-black uppercase tracking-widest">
-                {match?.status?.includes("Live") ? "Live" : "Match Update"} •{" "}
-                {match?.venue}
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="bg-blue-600/20 text-blue-500 text-[10px] font-black uppercase px-3 py-1 rounded-md border border-blue-500/20">
+                {match?.matchType}
               </span>
-            </span>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mt-4">
-            <div className="text-center md:text-left">
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">
-                {match?.teams?.[0]}
-              </h3>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                {match?.score?.[0]?.inning || "Innings 1"}:{" "}
-                {match?.score?.[0]?.r || 0}/{match?.score?.[0]?.w || 0} (
-                {match?.score?.[0]?.o || 0} ov)
-              </p>
+              <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">
+                {match?.name}
+              </span>
             </div>
 
-            <div className="text-center">
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">
-                {match?.matchType?.toUpperCase()}
-              </p>
-              <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter italic">
-                {match?.score?.[match?.score?.length - 1]?.r || 0}/
-                {match?.score?.[match?.score?.length - 1]?.w || 0}
-              </h2>
-              <p className="text-blue-500 font-bold mt-2 text-sm uppercase tracking-tighter">
-                {match?.status}
-              </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-4">
+                  {match?.status}
+                </h1>
+                <div className="flex flex-wrap gap-4 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin size={14} className="text-blue-500" />{" "}
+                    {match?.venue}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={14} className="text-blue-500" />{" "}
+                    {match?.date}
+                  </span>
+                </div>
+              </div>
 
-            <div className="text-center md:text-right">
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">
-                {match?.teams?.[1]}
-              </h3>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                {match?.score?.[1]?.inning || "Yet to bat"}
-              </p>
+              <div className="flex justify-between md:justify-end gap-10 border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-10">
+                {match?.score?.map((s, i) => (
+                  <div key={i} className="text-center md:text-right">
+                    <p className="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                      {match?.teamInfo?.[i]?.shortname || "Team"}
+                    </p>
+                    <p className="text-2xl font-black italic">
+                      {s.r}/{s.w}
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-bold">
+                      {s.o} OV
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            {hasScorecard ? (
-              <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
-                  <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
-                    <h4 className="text-white text-xs font-black uppercase tracking-widest">
-                      Batting: {currentInnings?.inning}
-                    </h4>
-                    <div className="flex gap-4 md:gap-8 text-[10px] font-bold text-slate-500 uppercase">
-                      <span className="w-8 text-center">R</span>
-                      <span className="w-8 text-center">B</span>
-                      <span className="w-8 text-center">4s</span>
-                      <span className="w-8 text-center">6s</span>
-                      <span className="w-12 text-center">SR</span>
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    {battingStats.map((player, idx) => (
-                      <div
-                        key={idx}
-                        className="flex justify-between items-center px-4 py-3 rounded-xl hover:bg-white/5 transition-colors"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-blue-400">
-                            {player.batsman?.name}
-                          </span>
-                          <span className="text-[9px] text-slate-500 uppercase font-medium">
-                            {player.dismissalText}
-                          </span>
-                        </div>
-                        <div className="flex gap-4 md:gap-8 text-xs font-black text-white">
-                          <span className="w-8 text-center">{player.r}</span>
-                          <span className="w-8 text-center text-slate-500">
-                            {player.b}
-                          </span>
-                          <span className="w-8 text-center text-slate-500">
-                            {player["4s"]}
-                          </span>
-                          <span className="w-8 text-center text-slate-500">
-                            {player["6s"]}
-                          </span>
-                          <span className="w-12 text-center text-slate-500">
-                            {player.sr}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-            ) : (
-              <div className="bg-white/5 border border-white/10 rounded-3xl p-20 flex flex-col items-center justify-center text-center">
-                <h4 className="text-white font-black uppercase tracking-widest text-xs mb-2">
-                  Scorecard Unavailable
-                </h4>
-                <p className="text-slate-500 text-[10px] max-w-xs leading-relaxed font-bold uppercase tracking-tighter">
-                  Detailed stats unavailable for this match.
-                </p>
-              </div>
-            )}
-          </div>
+        {/* --- INNINGS TABS --- */}
+        <div className="flex gap-2 mb-6 bg-white/5 p-1.5 rounded-2xl w-fit">
+          {scorecard.map((inn, idx) => (
+            <button
+              key={idx}
+              onClick={() => setActiveInning(idx)}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                activeInning === idx
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {inn.inning.split("Inning")[0]}
+            </button>
+          ))}
+        </div>
 
-          <div className="space-y-6">
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-              <h4 className="text-white text-[10px] font-black uppercase tracking-widest mb-4">
-                Trending News
-              </h4>
-              <div className="space-y-4">
-                {newsLoading ? (
-                  <div className="animate-pulse space-y-2">
-                    <div className="h-4 bg-white/5 rounded w-3/4"></div>
-                    <div className="h-4 bg-white/5 rounded w-1/2"></div>
-                  </div>
-                ) : (
-                  news?.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border-b border-white/5 pb-3 last:border-0"
-                    >
-                      <span className="text-blue-500 text-[8px] font-black uppercase tracking-widest">
-                        {item.category}
-                      </span>
-                      <p className="text-white text-xs font-bold mt-1 leading-snug">
-                        {item.title}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {/* --- BATTING TABLE --- */}
+            <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden">
+              <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
+                <Zap size={16} className="text-yellow-500" />
+                <h3 className="text-xs font-black uppercase tracking-widest">
+                  Batting Stats
+                </h3>
+              </div>
+
+              {/* Mobile View */}
+              <div className="md:hidden p-4 space-y-3">
+                {currentData?.batting.map((p, i) => (
+                  <div
+                    key={i}
+                    className="bg-white/5 rounded-2xl p-4 border border-white/5"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="text-blue-400 font-bold text-sm">
+                          {p.batsman.name}
+                        </p>
+                        <p className="text-[9px] text-slate-500 uppercase leading-tight">
+                          {p.dismissalText || "Not Out"}
+                        </p>
+                      </div>
+                      <p className="text-xl font-black">
+                        {p.r}
+                        <span className="text-[10px] text-slate-500 font-normal ml-1">
+                          ({p.b})
+                        </span>
                       </p>
                     </div>
-                  ))
-                )}
+                    <div className="grid grid-cols-3 gap-4 text-center pt-3 border-t border-white/5">
+                      <div>
+                        <p className="text-[8px] text-slate-500 font-black">
+                          4s
+                        </p>
+                        <p className="text-xs font-bold">{p["4s"]}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] text-slate-500 font-black">
+                          6s
+                        </p>
+                        <p className="text-xs font-bold">{p["6s"]}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] text-slate-500 font-black">
+                          SR
+                        </p>
+                        <p className="text-xs font-bold text-blue-500">
+                          {p.sr}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block p-6">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] border-b border-white/5">
+                      <th className="pb-4 text-left">Batsman</th>
+                      <th className="pb-4 text-center">R</th>
+                      <th className="pb-4 text-center">B</th>
+                      <th className="pb-4 text-center">4s</th>
+                      <th className="pb-4 text-center">6s</th>
+                      <th className="pb-4 text-right">SR</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {currentData?.batting.map((p, i) => (
+                      <tr key={i} className="group hover:bg-white/[0.02]">
+                        <td className="py-4">
+                          <p className="text-sm font-bold text-blue-400">
+                            {p.batsman.name}
+                          </p>
+                          <p className="text-[9px] text-slate-500 uppercase">
+                            {p.dismissalText || "Not Out"}
+                          </p>
+                        </td>
+                        <td className="text-center font-black">{p.r}</td>
+                        <td className="text-center text-slate-400 text-sm">
+                          {p.b}
+                        </td>
+                        <td className="text-center text-slate-400 text-sm">
+                          {p["4s"]}
+                        </td>
+                        <td className="text-center text-slate-400 text-sm">
+                          {p["6s"]}
+                        </td>
+                        <td className="text-right font-bold text-blue-500 text-sm">
+                          {p.sr}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* --- BOWLING TABLE --- */}
+            <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden">
+              <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
+                <Target size={16} className="text-red-500" />
+                <h3 className="text-xs font-black uppercase tracking-widest">
+                  Bowling Stats
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full p-6 block md:table">
+                  <thead className="hidden md:table-header-group">
+                    <tr className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">
+                      <th className="p-6 text-left">Bowler</th>
+                      <th className="text-center">O</th>
+                      <th className="text-center">M</th>
+                      <th className="text-center">R</th>
+                      <th className="text-center">W</th>
+                      <th className="text-right pr-8">ECO</th>
+                    </tr>
+                  </thead>
+                  <tbody className="block md:table-row-group">
+                    {currentData?.bowling.map((b, i) => (
+                      <tr
+                        key={i}
+                        className="border-b border-white/5 last:border-0 block md:table-row"
+                      >
+                        <td className="p-4 md:p-6 block md:table-cell">
+                          <p className="text-sm font-bold text-white">
+                            {b.bowler.name}
+                          </p>
+                        </td>
+                        <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
+                          <span className="md:hidden text-[8px] text-slate-500 block">
+                            O
+                          </span>
+                          {b.o}
+                        </td>
+                        <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
+                          <span className="md:hidden text-[8px] text-slate-500 block">
+                            M
+                          </span>
+                          {b.m}
+                        </td>
+                        <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
+                          <span className="md:hidden text-[8px] text-slate-500 block">
+                            R
+                          </span>
+                          {b.r}
+                        </td>
+                        <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell font-black text-red-500">
+                          <span className="md:hidden text-[8px] text-slate-500 block">
+                            W
+                          </span>
+                          {b.w}
+                        </td>
+                        <td className="px-4 py-2 md:p-0 text-right md:pr-8 inline-block md:table-cell font-bold text-slate-400">
+                          {b.eco}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          {/* --- SIDEBAR INFO --- */}
+          <aside className="space-y-6">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2rem] p-8 shadow-xl">
+              <ShieldCheck className="mb-4 text-white/50" size={32} />
+              <h4 className="text-white text-[10px] font-black uppercase tracking-widest mb-2">
+                Toss Update
+              </h4>
+              <p className="text-white font-bold italic uppercase leading-tight">
+                {match?.tossWinner} won the toss and elected to{" "}
+                {match?.tossChoice}.
+              </p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-              <h4 className="text-white text-[10px] font-black uppercase tracking-widest mb-4">
-                Match Analytics
+            <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8">
+              <h4 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-6 border-b border-white/5 pb-4">
+                Innings Summary
               </h4>
               <div className="space-y-4">
-                <div>
-                  <p className="text-slate-500 text-[9px] uppercase font-bold">
-                    Venue
-                  </p>
-                  <p className="text-slate-200 text-xs font-bold">
-                    {match?.venue || "TBD"}
-                  </p>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    Extras
+                  </span>
+                  <span className="text-sm font-black">
+                    {currentData?.extras?.t || 0}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-slate-500 text-[9px] uppercase font-bold">
-                    Match Date
-                  </p>
-                  <p className="text-slate-200 text-xs font-bold">
-                    {match?.date || "N/A"}
-                  </p>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    Total Score
+                  </span>
+                  <span className="text-lg font-black text-blue-500">
+                    {currentData?.totals?.r}/{currentData?.totals?.w}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    Run Rate
+                  </span>
+                  <span className="text-sm font-black italic">
+                    {currentData?.totals?.rr || "N/A"}
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
