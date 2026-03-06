@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchMatchScorecard,
@@ -21,20 +21,41 @@ const LiveScorecard = () => {
     queryKey: ["liveScorecard"],
     queryFn: async () => {
       try {
-        const liveMatches = await fetchLiveMatches();
+        const liveMatchesRes = await fetchLiveMatches();
+        
+        const matchesList = liveMatchesRes?.data?.data || [];
+        
         let matchId = "ea479cff-ddbe-48e0-9e4a-528f61a8a175";
-        if (liveMatches?.status === "success" && liveMatches.data?.length > 0) {
-          matchId = liveMatches.data[0].id;
+
+        if (Array.isArray(matchesList) && matchesList.length > 0) {
+          matchId = matchesList[0].id;
         }
+
         const result = await fetchMatchScorecard(matchId);
-        return result.data;
+        
+        const scorecardData = result?.data?.data || result?.data;
+
+        if (!scorecardData || !scorecardData.scorecard) {
+          throw new Error("Invalid scorecard structure");
+        }
+
+        return scorecardData;
       } catch (err) {
         const fallback = await fetchFallbackScorecard();
-        return { ...fallback.data, isFallback: true };
+        return {
+          ...(fallback?.data?.data || fallback?.data),
+          isFallback: true,
+        };
       }
     },
     staleTime: 30000,
   });
+
+  useEffect(() => {
+    if (match?.scorecard?.length > 0) {
+      setActiveInning(match.scorecard.length - 1);
+    }
+  }, [match]);
 
   if (isLoading && !match) {
     return (
@@ -50,7 +71,14 @@ const LiveScorecard = () => {
   return (
     <div className="min-h-screen bg-[#020617] font-poppins text-white">
       <div className="pt-24 md:pt-32 px-4 md:px-8 pb-12 max-w-7xl mx-auto">
-        {/* --- MATCH RESULT HEADER --- */}
+        {match?.isFallback && (
+          <div className="mb-6 flex justify-center">
+            <span className="bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] px-4 py-1.5 rounded-full uppercase font-black tracking-widest">
+              Live Data Unavailable • Showing Fallback
+            </span>
+          </div>
+        )}
+
         <header className="bg-slate-900 border border-white/5 rounded-[2.5rem] p-6 md:p-10 mb-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Trophy size={120} />
@@ -59,7 +87,7 @@ const LiveScorecard = () => {
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-6">
               <span className="bg-blue-600/20 text-blue-500 text-[10px] font-black uppercase px-3 py-1 rounded-md border border-blue-500/20">
-                {match?.matchType}
+                {match?.matchType || "Match"}
               </span>
               <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">
                 {match?.name}
@@ -87,7 +115,9 @@ const LiveScorecard = () => {
                 {match?.score?.map((s, i) => (
                   <div key={i} className="text-center md:text-right">
                     <p className="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                      {match?.teamInfo?.[i]?.shortname || "Team"}
+                      {match?.teamInfo?.[i]?.shortname ||
+                        match?.teams?.[i] ||
+                        "Team"}
                     </p>
                     <p className="text-2xl font-black italic">
                       {s.r}/{s.w}
@@ -102,7 +132,6 @@ const LiveScorecard = () => {
           </div>
         </header>
 
-        {/* --- INNINGS TABS --- */}
         <div className="flex gap-2 mb-6 bg-white/5 p-1.5 rounded-2xl w-fit">
           {scorecard.map((inn, idx) => (
             <button
@@ -114,14 +143,13 @@ const LiveScorecard = () => {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              {inn.inning.split("Inning")[0]}
+              {inn.inning?.split("Inning")[0] || `Innings ${idx + 1}`}
             </button>
           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* --- BATTING TABLE --- */}
             <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden">
               <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
                 <Zap size={16} className="text-yellow-500" />
@@ -130,9 +158,8 @@ const LiveScorecard = () => {
                 </h3>
               </div>
 
-              {/* Mobile View */}
               <div className="md:hidden p-4 space-y-3">
-                {currentData?.batting.map((p, i) => (
+                {currentData?.batting?.map((p, i) => (
                   <div
                     key={i}
                     className="bg-white/5 rounded-2xl p-4 border border-white/5"
@@ -140,7 +167,7 @@ const LiveScorecard = () => {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <p className="text-blue-400 font-bold text-sm">
-                          {p.batsman.name}
+                          {p.batsman?.name}
                         </p>
                         <p className="text-[9px] text-slate-500 uppercase leading-tight">
                           {p.dismissalText || "Not Out"}
@@ -179,7 +206,6 @@ const LiveScorecard = () => {
                 ))}
               </div>
 
-              {/* Desktop View */}
               <div className="hidden md:block p-6">
                 <table className="w-full">
                   <thead>
@@ -193,11 +219,11 @@ const LiveScorecard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {currentData?.batting.map((p, i) => (
+                    {currentData?.batting?.map((p, i) => (
                       <tr key={i} className="group hover:bg-white/[0.02]">
                         <td className="py-4">
                           <p className="text-sm font-bold text-blue-400">
-                            {p.batsman.name}
+                            {p.batsman?.name}
                           </p>
                           <p className="text-[9px] text-slate-500 uppercase">
                             {p.dismissalText || "Not Out"}
@@ -223,7 +249,6 @@ const LiveScorecard = () => {
               </div>
             </section>
 
-            {/* --- BOWLING TABLE --- */}
             <section className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden">
               <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
                 <Target size={16} className="text-red-500" />
@@ -244,38 +269,38 @@ const LiveScorecard = () => {
                     </tr>
                   </thead>
                   <tbody className="block md:table-row-group">
-                    {currentData?.bowling.map((b, i) => (
+                    {currentData?.bowling?.map((b, i) => (
                       <tr
                         key={i}
                         className="border-b border-white/5 last:border-0 block md:table-row"
                       >
                         <td className="p-4 md:p-6 block md:table-cell">
                           <p className="text-sm font-bold text-white">
-                            {b.bowler.name}
+                            {b.bowler?.name}
                           </p>
                         </td>
                         <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
                           <span className="md:hidden text-[8px] text-slate-500 block">
                             O
-                          </span>
+                          </span>{" "}
                           {b.o}
                         </td>
                         <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
                           <span className="md:hidden text-[8px] text-slate-500 block">
                             M
-                          </span>
+                          </span>{" "}
                           {b.m}
                         </td>
                         <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell">
                           <span className="md:hidden text-[8px] text-slate-500 block">
                             R
-                          </span>
+                          </span>{" "}
                           {b.r}
                         </td>
                         <td className="px-4 py-2 md:p-0 text-center inline-block md:table-cell font-black text-red-500">
                           <span className="md:hidden text-[8px] text-slate-500 block">
                             W
-                          </span>
+                          </span>{" "}
                           {b.w}
                         </td>
                         <td className="px-4 py-2 md:p-0 text-right md:pr-8 inline-block md:table-cell font-bold text-slate-400">
@@ -289,7 +314,6 @@ const LiveScorecard = () => {
             </section>
           </div>
 
-          {/* --- SIDEBAR INFO --- */}
           <aside className="space-y-6">
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2rem] p-8 shadow-xl">
               <ShieldCheck className="mb-4 text-white/50" size={32} />
@@ -297,8 +321,8 @@ const LiveScorecard = () => {
                 Toss Update
               </h4>
               <p className="text-white font-bold italic uppercase leading-tight">
-                {match?.tossWinner} won the toss and elected to{" "}
-                {match?.tossChoice}.
+                {match?.tossWinner || "Information"} won the toss and elected to{" "}
+                {match?.tossChoice || "play"}.
               </p>
             </div>
 
@@ -320,7 +344,7 @@ const LiveScorecard = () => {
                     Total Score
                   </span>
                   <span className="text-lg font-black text-blue-500">
-                    {currentData?.totals?.r}/{currentData?.totals?.w}
+                    {currentData?.totals?.r || 0}/{currentData?.totals?.w || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -328,7 +352,7 @@ const LiveScorecard = () => {
                     Run Rate
                   </span>
                   <span className="text-sm font-black italic">
-                    {currentData?.totals?.rr || "N/A"}
+                    {currentData?.totals?.rr || "0.0"}
                   </span>
                 </div>
               </div>

@@ -38,8 +38,8 @@ const Series = () => {
   ];
 
   return (
-    <div className="p-4 md:p-10 max-w-7xl mx-auto animate-in fade-in duration-700">
-      <div className="mb-10">
+    <div className="p-4 md:p-10 max-w-7xl mx-auto animate-in fade-in duration-700 pt-20">
+      <div className="mb-10 pt-10">
         <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic">
           Cricket Series
         </h1>

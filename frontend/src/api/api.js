@@ -74,21 +74,24 @@ export const fetchWatchlist = async () => {
   return response.data;
 };
 
-// Fixed to use apiclient (Axios) so the Auth interceptor works
 export const removeFromWatchlist = async (id) => {
   const response = await apiclient.delete(`/auth/watchlist/${id}`);
   return response.data;
 };
 
-export const fetchLiveMatches = async () => {
-  const response = await apiclient.get("/cricket/matches");
+export const fetchLiveMatches = async (filters = {}) => {
+  const response = await apiclient.get("/cricket/matches", {
+    params: filters,
+  });
   return response.data;
 };
 
 export const fetchMatchScorecard = async (matchId) => {
   const response = await apiclient.get(`/cricket/scorecard/${matchId}`);
-  if (response.data?.status === "failure") {
-    throw new Error(response.data.reason || "API Limit reached");
+  const data = response.data?.data || response.data;
+  
+  if (data?.status === "failure") {
+    throw new Error(data.reason || "API Limit reached");
   }
   return response.data;
 };

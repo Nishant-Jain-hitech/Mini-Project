@@ -104,8 +104,8 @@ const Pavilion = () => {
   };
 
   return (
-    <div className="p-4 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-500 relative">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+    <div className="p-4 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-500 relative pt-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pt-10">
         <div>
           <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
             The Pavilion

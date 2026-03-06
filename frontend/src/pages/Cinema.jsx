@@ -122,7 +122,7 @@ const Cinema = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-20 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 pb-20 overflow-x-hidden pt-20">
       {/* Featured Hero Section */}
       <div className="relative h-[75vh] w-full overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10" />

@@ -1,15 +1,30 @@
 from fastapi import APIRouter, HTTPException, Query
 from services.cricket_api import get_match_scorecard, get_live_matches
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 router = APIRouter()
 
 @router.get("/matches")
-async def read_live_matches():
+async def read_live_matches(
+    status: Optional[str] = Query(None, description="Filter matches by status (e.g., 'live', 'upcoming', 'completed')"),
+    matchType: Optional[str] = Query(None, description="Filter by match type (e.g., 't20', 'odi', 'test')")
+):
     data = await get_live_matches()
+    
     if not data:
         raise HTTPException(status_code=500, detail="Failed to fetch matches")
-    return data
+
+    # Assuming 'data' is a list of match dictionaries
+    filtered_matches = data
+
+    # Dynamic Filtering Logic
+    if status:
+        filtered_matches = [m for m in filtered_matches if m.get("status", "").lower() == status.lower()]
+    
+    if matchType:
+        filtered_matches = [m for m in filtered_matches if m.get("matchType", "").lower() == matchType.lower()]
+
+    return filtered_matches
 
 @router.get("/scorecard/{match_id}")
 async def read_scorecard(match_id: str):
